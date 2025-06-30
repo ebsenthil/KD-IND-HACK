@@ -1,3 +1,3 @@
 
 
-![Inventory Prediction Diagram](./Hackathon_industry drawio.png)
+![Inventory Prediction Diagram](./Hackathon_industry.drawio.png)

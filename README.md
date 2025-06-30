@@ -1,6 +1,7 @@
 
 
-# ✅ Inventory Forecasting System ML & LangGraph based Multi Agent Workflow
+# ✅ Inventory Forecasting System 
+##  Machine Learning & Gen AI Multi Agent Workflow using LangGraph
 
 This repository presents a hybrid system that integrates Machine Learning Model and LangGraph based AI Multi Agent workflow to forecast product inventory needs in the retail industry using both internal (sales) and external (weather, holiday, disaster) data.
 

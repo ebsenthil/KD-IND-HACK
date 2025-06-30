@@ -1,25 +1,25 @@
 
 
-# 🧠 Inventory Forecasting System ML & LangGraph based Multi Agent Workflow
+# ✅ Inventory Forecasting System ML & LangGraph based Multi Agent Workflow
 
 This repository presents a hybrid system that integrates Machine Learning Model and LangGraph based AI Multi Agent workflow to forecast product inventory needs in the retail industry using both internal (sales) and external (weather, holiday, disaster) data.
 
 ---
 
-## 📊 Architecture Diagram
+## ✅ Architecture Diagram
 
 ![Inventory Prediction System](./Hackathon_industry.drawio.png)
 
 ---
 
-## 🏬 Data Sources
+## ✅ Data Sources
 
 - **Retail Stores**: Provide daily sales data (e.g., product SKUs, quantities, dates).
 - **External Events**: Include holidays, policy changes, strikes, weather, and natural disasters.
 
 ---
 
-## 🔄 Data Ingestion & Collection
+## ✅ Data Ingestion & Collection
 
 - **Daily Sales Data**: Gathered from retail stores.
 - **External Data**: Retrieved through a multi-agent workflow powered by LLMOps, calling APIs for:
@@ -30,7 +30,7 @@ This repository presents a hybrid system that integrates Machine Learning Model 
 
 ---
 
-## ⚙️ MLOps Workflow
+## ✅ MLOps Workflow
 
 1. **Data Preprocessing**:
    - Cleans and formats raw sales and external event data.
@@ -45,7 +45,7 @@ This repository presents a hybrid system that integrates Machine Learning Model 
 
 ---
 
-## 🤖 LLMOps & Multi-Agent Workflow
+## ✅ LLMOps & Multi-Agent Workflow
 
 - Users interact with the system through a **LangGraph multi-agent interface**.
 - Agents gather contextual data via API calls (e.g., weather on a future date).
@@ -53,7 +53,7 @@ This repository presents a hybrid system that integrates Machine Learning Model 
 
 ---
 
-## 🔁 Automation & Optimization
+## ✅ Automation & Optimization
 
 - **MLOps** handles:
   - Automation of pipelines
@@ -76,7 +76,7 @@ This repository presents a hybrid system that integrates Machine Learning Model 
 
 ```
 
-## 📁 Project Structure
+## ✅ Project Structure
 
 ├── Hackathon_industry.drawio.png # System architecture diagram
 ├── inventory_predictor.py # Model interface code

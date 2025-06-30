@@ -1,8 +1,8 @@
 
 
-# 🧠 Inventory Forecasting System with MLOps and LLMOps
+# 🧠 Inventory Forecasting System ML & LangGraph based Multi Agent Workflow
 
-This repository presents a hybrid system that integrates **MLOps** and **LLMOps** practices to forecast product inventory needs in the retail industry using both internal (sales) and external (weather, holiday, disaster) data.
+This repository presents a hybrid system that integrates Machine Learning Model and LangGraph based AI Multi Agent workflow to forecast product inventory needs in the retail industry using both internal (sales) and external (weather, holiday, disaster) data.
 
 ---
 
@@ -74,7 +74,7 @@ This repository presents a hybrid system that integrates **MLOps** and **LLMOps*
 - Fully **automated** and **scalable**
 - Supports **multi-agent AI orchestration**
 
----
+```
 
 ## 📁 Project Structure
 
@@ -86,8 +86,7 @@ This repository presents a hybrid system that integrates **MLOps** and **LLMOps*
 
 
 
-
----
+```
 
 ## 🚀 Getting Started
 

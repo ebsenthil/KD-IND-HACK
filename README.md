@@ -78,3 +78,29 @@ This repository presents a hybrid system that integrates **MLOps** and **LLMOps*
 
 ## 📁 Project Structure
 
+├── Hackathon_industry.drawio.png # System architecture diagram
+├── inventory_predictor.py # Model interface code
+├── model artifacts (.pkl, .csv) # Data and model files
+├── agent_toolkit/ # LangGraph agent tools
+└── README.md # This file
+
+
+
+
+---
+
+## 🚀 Getting Started
+
+> To run locally or in Colab, ensure you have:
+- Python 3.10+
+- Required packages from `requirements.txt`
+- Access to external APIs (Open-Meteo, GoogleCalender,Tavily, etc.)
+
+---
+
+## 📬 Contact
+
+For collaboration or questions, please open an issue or contact Senthil Nathan.
+
+
+

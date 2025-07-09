@@ -1,8 +1,16 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-from agent import agent
 import io
+import os
+import sys
+
+# Add error handling for imports
+try:
+    from agent import agent
+except ImportError as e:
+    st.error(f"Error importing agent: {e}")
+    st.stop()
 
 # Set page config
 st.set_page_config(
@@ -35,15 +43,87 @@ st.markdown("""
         border-left: 4px solid #1f77b4;
         margin: 1rem 0;
     }
+    .stAlert {
+        margin: 1rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# Health check for API keys
+def check_api_keys():
+    """Check if all required API keys are present"""
+    required_keys = ['TAVILY_API_KEY', 'OPENAI_API_KEY', 'GOOGLE_API_KEY']
+    missing_keys = []
+    
+    for key in required_keys:
+        if not os.getenv(key):
+            missing_keys.append(key)
+    
+    if missing_keys:
+        st.error(f"Missing API keys: {missing_keys}")
+        st.info("Please set these environment variables on your EC2 instance")
+        return False
+    return True
+
+# Initialize session state
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+
+if 'agent_ready' not in st.session_state:
+    st.session_state.agent_ready = False
 
 # Main title
 st.markdown('<h1 class="main-header">📦 Inventory Prediction Agent</h1>', unsafe_allow_html=True)
 
+# Check system status
+with st.expander("🔍 System Status", expanded=False):
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        api_status = check_api_keys()
+        if api_status:
+            st.success("✅ API Keys: OK")
+        else:
+            st.error("❌ API Keys: Missing")
+    
+    with col2:
+        try:
+            if agent:
+                st.success("✅ Agent: Ready")
+                st.session_state.agent_ready = True
+            else:
+                st.error("❌ Agent: Not initialized")
+        except Exception as e:
+            st.error(f"❌ Agent: Error - {str(e)}")
+    
+    with col3:
+        # Check model files
+        model_files = [
+            'xgboost_inventory_model.pkl',
+            'label_encoders.pkl',
+            'feature_columns.pkl',
+            'synthetic_retail_sales_data.csv'
+        ]
+        missing_files = [f for f in model_files if not os.path.exists(f)]
+        if not missing_files:
+            st.success("✅ Model Files: OK")
+        else:
+            st.error(f"❌ Model Files: Missing {missing_files}")
+
+# Only show main interface if agent is ready
+if not st.session_state.agent_ready:
+    st.warning("⚠️ Please fix the issues above before proceeding")
+    st.stop()
+
 # Sidebar for configuration
 with st.sidebar:
     st.header("🛠️ Configuration")
+    
+    # Server info
+    st.info(f"**Server Info:**\n"
+            f"- Python: {sys.version.split()[0]}\n"
+            f"- Working Dir: {os.getcwd()}\n"
+            f"- Host: {os.getenv('HOSTNAME', 'EC2')}")
     
     # Quick action buttons
     st.subheader("Quick Actions")
@@ -137,12 +217,40 @@ with col1:
         if user_query.strip():
             with st.spinner("Processing your request..."):
                 try:
-                    response = agent.process_query(user_query)
-                    st.session_state.last_response = response
-                    st.session_state.last_query = user_query
+                    # Add timeout handling for EC2
+                    import signal
+                    
+                    def timeout_handler(signum, frame):
+                        raise TimeoutError("Request timed out")
+                    
+                    # Set timeout to 60 seconds
+                    signal.signal(signal.SIGALRM, timeout_handler)
+                    signal.alarm(60)
+                    
+                    try:
+                        response = agent.process_query(user_query)
+                        signal.alarm(0)  # Cancel the alarm
+                        
+                        st.session_state.last_response = response
+                        st.session_state.last_query = user_query
+                        
+                        # Add to chat history
+                        st.session_state.chat_history.append({
+                            'query': user_query,
+                            'response': response,
+                            'timestamp': datetime.now()
+                        })
+                        
+                    except TimeoutError:
+                        st.error("Request timed out. Please try again with a simpler query.")
+                        st.session_state.last_response = None
+                        
                 except Exception as e:
                     st.error(f"Error processing query: {str(e)}")
                     st.session_state.last_response = None
+                    
+                    # Log error for debugging
+                    st.error(f"Debug info: {type(e).__name__}: {str(e)}")
         else:
             st.warning("Please enter a query!")
 
@@ -157,11 +265,27 @@ with col2:
             "- Disaster monitoring\n"
             "- Inventory prediction")
     
+    # Resource usage (if available)
+    try:
+        import psutil
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory_percent = psutil.virtual_memory().percent
+        
+        st.metric("CPU Usage", f"{cpu_percent}%")
+        st.metric("Memory Usage", f"{memory_percent}%")
+    except ImportError:
+        st.info("Install psutil for resource monitoring")
+    
     # Show graph visualization
     if st.button("🔍 View Agent Graph"):
-        graph_png = agent.get_graph_visualization()
-        if graph_png:
-            st.image(graph_png, caption="Agent Workflow Graph")
+        try:
+            graph_png = agent.get_graph_visualization()
+            if graph_png:
+                st.image(graph_png, caption="Agent Workflow Graph")
+            else:
+                st.warning("Graph visualization not available")
+        except Exception as e:
+            st.error(f"Error generating graph: {e}")
 
 # Display response
 if hasattr(st.session_state, 'last_response') and st.session_state.last_response:
@@ -185,25 +309,16 @@ if hasattr(st.session_state, 'last_response') and st.session_state.last_response
 
 # Chat history
 st.subheader("💬 Chat History")
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-
-# Add to chat history when response is generated
-if hasattr(st.session_state, 'last_response') and st.session_state.last_response:
-    # Check if this is a new conversation
-    if not st.session_state.chat_history or st.session_state.chat_history[-1]['query'] != st.session_state.last_query:
-        st.session_state.chat_history.append({
-            'query': st.session_state.last_query,
-            'response': st.session_state.last_response,
-            'timestamp': datetime.now()
-        })
 
 # Display chat history
-for i, chat in enumerate(reversed(st.session_state.chat_history[-5:])):  # Show last 5 chats
-    with st.expander(f"Chat {len(st.session_state.chat_history) - i}: {chat['query'][:50]}..."):
-        st.write(f"**Time:** {chat['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
-        st.write(f"**Query:** {chat['query']}")
-        st.write(f"**Response:** {chat['response']}")
+if st.session_state.chat_history:
+    for i, chat in enumerate(reversed(st.session_state.chat_history[-5:])):  # Show last 5 chats
+        with st.expander(f"Chat {len(st.session_state.chat_history) - i}: {chat['query'][:50]}..."):
+            st.write(f"**Time:** {chat['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+            st.write(f"**Query:** {chat['query']}")
+            st.write(f"**Response:** {chat['response']}")
+else:
+    st.info("No chat history yet. Start by asking a question!")
 
 # Clear chat history
 if st.button("🗑️ Clear Chat History"):
@@ -212,4 +327,4 @@ if st.button("🗑️ Clear Chat History"):
 
 # Footer
 st.markdown("---")
-st.markdown("*Built with Streamlit, LangChain, and LangGraph*")
+st.markdown("*Built with Streamlit, LangChain, and LangGraph | Running on EC2*")
